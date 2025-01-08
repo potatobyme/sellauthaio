@@ -242,7 +242,7 @@ async def restocknotif(ctx):
         products_sold = product['products_sold']
         path = product['path']
 
-        autobuy_link = f"{config["sellauthlink"]}"
+        autobuy_link = f"{config['sellauthlink']}"
 
 
         embed.add_field(

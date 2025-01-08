@@ -22,3 +22,8 @@ Syntax for all the following commands are:**
 - Using this command will send you all stock of the product in your dms.
 
 **__Invoice command__:**
+- ```.invoice {InvoiceID}```
+- Using this command will dm you information regarding the invoice.
+
+**Payment Command:**
+-

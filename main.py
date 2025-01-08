@@ -305,15 +305,7 @@ async def getstock(ctx,productid):
 
     response = requests.get(
         f'https://api-internal.sellauth.com/v1/shops/{config["shop_id"]}/products/{productid}/deliverables',
-        headers={
-            'sec-ch-ua-platform': '"Windows"',
-            'Authorization': f'Bearer {config["btoken"]}',
-            'Referer': 'https://dashboard.mysellauth.com/',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            'Accept': 'application/json',
-            'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-            'sec-ch-ua-mobile': '?0',
-        }
+        headers=headers
     )
 
     if response.status_code == 200:

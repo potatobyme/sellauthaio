@@ -92,6 +92,21 @@ A full working AIO source code that lets you access your Sellauth via Discord bo
 - **Description**: Updates product price and information.
 - **Example**: `.update 123 29.99`
 
+  ### Purchase Command
+- **Usage**: `.purchase {COUPON} {email} {amount}`
+- **Description**: Purchases product directly via discord instead of sellauth.
+- **Example**: `.purchase couponxyz xyz@xyz.com 2000`
+
+  ### GetDelivery Command
+- **Usage**: `.getdelivery {invoice_id}`
+- **Description**: Sends you the product after the payment is done and the confirmations are done.
+- **Example**: `.getdelivery xyz-invoiceid`
+
+    ### Stats Command
+- **Usage**: `.stats `
+- **Description**: Shows statistic of the sellauth.
+- **Example**: `.stats`
+  
 ## Permission Levels
 - Some commands require specific permission levels (Owner, Admin, Staff)
 - Make sure to configure permissions in config.json

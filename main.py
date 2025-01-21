@@ -704,6 +704,9 @@ async def payout(ctx, ltcaddy: str, amount_in_usd: float):
 
 @bot.command()
 async def stats(ctx):
+    if ctx.author.id not in bot.owners:
+        await ctx.send("You do not have permission to use this command.")
+        return
     response = requests.get('https://api-internal.sellauth.com/v1/shops/1700/analytics?start=2024-01-17T18:30:00.000Z&end=2025-01-21T17:19:23.861Z&excludeManual=0&excludeArchived=0&currency=USD',headers=headers,)
     data = response.json()
     total_orders = data["orders"]

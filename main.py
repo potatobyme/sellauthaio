@@ -108,6 +108,7 @@ async def help(ctx):
     embed.add_field(name=".update ", value="To update a product price and information.", inline=True)
     embed.add_field(name=".purchase ", value="To purchase a product directly via discord.", inline=True)
     embed.add_field(name=".getdelivery ", value="To get delivery of the product directly via discord.", inline=True)
+    embed.add_field(name=".stats ", value="Shows statistic of the sellauth.", inline=True)
     embed.set_thumbnail(url="https://cdn.discordapp.com/icons/1318481149777150015/a_9fb7ec7c6b752452808dd6b7a902ff33.gif?size=1024")
     embed.set_footer(text="Powered by MR ALTS", icon_url="https://cdn.discordapp.com/avatars/1278919288870273024/a_0d6cf77b7d144815fb230d8103ae0296.gif?size=1024")
 

@@ -10,7 +10,7 @@
 A full working AIO source code that lets you access your Sellauth via Discord bot.
 
 ## List of Commands:
-![image](https://github.com/user-attachments/assets/c848b909-ac22-4793-b8b2-a5d2adf580e9)
+![image]()
 
 ## Command Details:
 

@@ -7,6 +7,7 @@ os.system('cls')
 import requests
 import random
 import time
+import aiohttp
 import io
 import asyncio
 import discord
@@ -19,6 +20,19 @@ import json
 import re
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='.', intents=intents, help_command=None)
+class PurchaseView(discord.ui.View):
+    def __init__(self, ltc_address, qr_code):
+        super().__init__()
+        self.ltc_address = ltc_address
+        self.qr_code = qr_code
+
+    @discord.ui.button(label="Get LTC Address", style=discord.ButtonStyle.primary)
+    async def ltc_address_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(f"{self.ltc_address}")
+
+    @discord.ui.button(label="Get LTC QR Code", style=discord.ButtonStyle.primary)
+    async def ltc_qr_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(file=self.qr_code)
 
 def load_config():
     with open('config.json', 'r') as f:
@@ -92,6 +106,8 @@ async def help(ctx):
     embed.add_field(name=".coupondelete ", value="To delete a discount coupon.", inline=True)
     embed.add_field(name=".couponedit ", value="To edit a discount coupon.", inline=True)
     embed.add_field(name=".update ", value="To update a product price and information.", inline=True)
+    embed.add_field(name=".purchase ", value="To purchase a product directly via discord.", inline=True)
+    embed.add_field(name=".getdelivery ", value="To get delivery of the product directly via discord.", inline=True)
     embed.set_thumbnail(url="https://cdn.discordapp.com/icons/1318481149777150015/a_9fb7ec7c6b752452808dd6b7a902ff33.gif?size=1024")
     embed.set_footer(text="Powered by MR ALTS", icon_url="https://cdn.discordapp.com/avatars/1278919288870273024/a_0d6cf77b7d144815fb230d8103ae0296.gif?size=1024")
 
@@ -686,7 +702,87 @@ async def payout(ctx, ltcaddy: str, amount_in_usd: float):
     except Exception as e:
         await ctx.send(f"An error occurred: {str(e)}")
 
+@bot.command()
+async def stats(ctx):
+    response = requests.get('https://api-internal.sellauth.com/v1/shops/1700/analytics?start=2024-01-17T18:30:00.000Z&end=2025-01-21T17:19:23.861Z&excludeManual=0&excludeArchived=0&currency=USD',headers=headers,)
+    data = response.json()
+    total_orders = data["orders"]
+    total_revenue = data["revenue"]
+    total_customers = data["customers"]
+    total_percentage_orders = data["ordersChange"]
+    total_percentage_revenue_change = data["revenueChange"]
+    total_customer_percntage_change = data["customersChange"]
 
+    embed = discord.Embed(title="Sellauth Statistic", color=discord.Color.green())
+
+    embed.add_field(name=f"<:stock:1322253893026971699> | Total Orders: ", value=f"{total_orders}", inline=False)
+    embed.add_field(name=f"<:percentage:1331317481226113064> | Total Order Percentage: ", value=f"{total_percentage_orders}%", inline=False)
+    embed.add_field(name=f"<:income:1331317848471109653> | Total Revenue: ", value=f"${total_revenue}", inline=False)
+    embed.add_field(name=f"<:percentage:1331317481226113064> | Total Revenue Percentage: ", value=f"{total_percentage_revenue_change}%", inline=False)
+    embed.add_field(name=f"<:customerservice:1331318192043462677> | Total Customers: ", value=f"{total_customers}", inline=False)
+    embed.add_field(name=f"<:Voucher:1326159334941659157> | Total Customer Percentage: ", value=f"{total_customer_percntage_change}%", inline=False)
+    await ctx.send(embed=embed)
+@bot.command()
+async def purchase(ctx, couponcode, email, amount):
+    productid = 51891
+    json_data = {
+        'product': productid,
+        'coupon': couponcode,
+        'email': email,
+        'custom_fields': {},
+        'gateway': 'LTC',
+        'amount': amount,
+    }
+
+    response = requests.post('https://api-internal.sellauth.com/v1/invoice/create', json=json_data)
+    if response.status_code == 200 and 'url' in response.json():
+        url = response.json()['url']
+        invoice_id = url.split('/')[-1]
+        response2 = requests.get(f'https://api-internal.sellauth.com/v1/invoice/{invoice_id}')
+        invoice_data = response2.json().get('invoice', {})
+        
+        eemail = invoice_data.get('email', 'N/A')
+        status = invoice_data.get('status', 'N/A')
+        price = invoice_data.get('price', 'N/A')
+        currency = invoice_data.get('currency', 'N/A')
+        LTC_address = invoice_data.get('crypto_address', 'N/A')
+        LTC_amount = invoice_data.get('crypto_amount', 'N/A')
+
+        embed = discord.Embed(title="Purchase Invoice", color=discord.Color.green())
+
+        embed.add_field(name=f"<:identity:1326256999691845633> | Code: {couponcode}", value="", inline=False)
+        embed.add_field(name=f"<:voucher:1326245770055389187> | Coupon Code: {couponcode}", value="", inline=False)
+        embed.add_field(name=f"<:discount:1326159417405866047> | Discount: N/A", value="", inline=False)
+        embed.add_field(name=f"<:stock:1322253893026971699> | Product: Minecraft Java & Bedrock Edition [No Name Set]", value="", inline=False)
+        embed.add_field(name=f"<:email:1330232670399238235> | Email: {eemail}", value="", inline=False)
+        embed.add_field(name=f"<:Voucher:1326159334941659157> | Invoice: ", value=f"[{invoice_id}](https://mralts.mysellauth.com/invoice/show/{invoice_id})", inline=False)
+        embed.add_field(name=f"<a:loading8:1317014683546419331> | Status: {status}", value="", inline=False)
+        embed.add_field(name=f"<:Money:1326113026184708136> | Price: ${price}", value="", inline=False)
+        embed.add_field(name=f"<a:ltcan:1326108601273815071> | Currency: {currency}", value="", inline=False)
+        embed.add_field(name=f"<:price:1330237249513721947> | LTC Amount: {LTC_amount}", value="", inline=False)
+
+        ltc_address = invoice_data.get('crypto_address', '')
+        if ltc_address:
+            qr = qrcode.make(ltc_address)
+            buffer = BytesIO()
+            qr.save(buffer, format="PNG")
+            buffer.seek(0)
+            file = discord.File(buffer, filename="qr_code.png")
+    
+            view = PurchaseView(ltc_address, file)
+
+            try:
+                dm_channel = await ctx.author.create_dm()
+                await dm_channel.send(embed=embed, view=view)
+                await ctx.reply("I have sent you a DM with your invoice!")
+            except discord.Forbidden:
+                await ctx.reply("I couldn't send you a DM. Please ensure DMs are enabled for this server.")
+        else:
+            view = PurchaseView(None, None)
+            await ctx.send(embed=embed, view=view)
+
+    else:
+        await ctx.send("Invoice creation failed.")
 @bot.command()
 async def process(ctx, invoice_id: str, cashapp_receipt_id: str = None):
     if ctx.author.id in bot.admins:
@@ -776,6 +872,34 @@ async def process(ctx, invoice_id: str, cashapp_receipt_id: str = None):
         }
         requests.post(webhook_url, data=json.dumps(log_data), headers={"Content-Type": "application/json"})
         
-        
+@bot.command()
+async def getdelivery(ctx, invoice_id):
+    url = f"https://api-internal.sellauth.com/v1/invoice/{invoice_id}"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            data = await response.json()
+
+    delivered = data.get('invoice', {}).get('delivered', None)
+
+    if delivered:
+        try:
+            delivered_list = json.loads(delivered)
+            delivered_str = ', '.join(delivered_list)
+        except json.JSONDecodeError:
+            delivered_str = "Invalid delivery format."
+
+        file_name = f"{invoice_id}_stock_info.txt"
+        with open(file_name, 'w') as file:
+            file.write(f"{delivered_str}\n")
+
+        try:
+            await ctx.author.send(file=discord.File(file_name))
+            await ctx.send(f"Stock information for invoice {invoice_id} has been sent to your DMs.")
+        except discord.errors.Forbidden:
+            await ctx.send("I can't send DMs to you. Please ensure your DMs are open.")
+    else:
+        await ctx.send("No stock information found for this invoice ID.")
+
 bot.run(config["bot_token"])
 

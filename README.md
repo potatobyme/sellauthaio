@@ -1,6 +1,5 @@
 #Developer:
 - garvwasthere
-- .gg/mcalt
 
 
 
